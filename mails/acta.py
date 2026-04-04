@@ -49,5 +49,3 @@ def copy_template():
     print("Created file ID:", file.get("id"))
 
 
-if __name__ == "__main__":
-    copy_template()
