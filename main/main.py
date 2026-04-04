@@ -1,8 +1,8 @@
 from utils import check_drive_link
-
-
-
-
+from prompt_toolkit import prompt
+from prompt_toolkit.completion import WordCompleter
+from prompt_toolkit.history import FileHistory
+from prompt_toolkit.shortcuts import CompleteStyle
 
 def actas():
     print("Gestión de actas")
@@ -48,10 +48,23 @@ def cambiar_link():
         print(e)
         print("URL inválida")
 
+
+
+commands = ["help", "exit", "actas"]
+
+completer = WordCompleter(commands, ignore_case=True)
+
+history = FileHistory("../files/log")
+
+
 def main():
     while True:
         try:
-            cmd = input("secre > ").strip()
+            cmd = prompt("secre > ", 
+                         history=history, 
+                         completer=completer,
+                         complete_while_typing=False,
+                         complete_style=CompleteStyle.READLINE_LIKE)
 
             if cmd == "exit":
                 break
