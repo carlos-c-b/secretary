@@ -2,6 +2,13 @@ import re
 from googleapiclient.discovery import build
 from google.oauth2.credentials import Credentials
 
+from pathlib import Path
+
+
+BASE_DIR = Path(__file__).resolve().parent
+TOKEN_PATH = BASE_DIR / "../token.json"
+
+
 SCOPES = ["https://www.googleapis.com/auth/drive"]
 
 def extract_file_id(url: str) -> str:
@@ -26,7 +33,7 @@ def folder_exists(file_id: str, service) -> bool:
 
 
 def check_drive_link(url: str):
-    creds = Credentials.from_authorized_user_file("../token.json", SCOPES)
+    creds = Credentials.from_authorized_user_file(TOKEN_PATH, SCOPES)
     service = build("drive", "v3", credentials=creds)
 
     file_id = extract_file_id(url)

@@ -10,7 +10,6 @@ from utils import extract_file_id
 # ----------------------------
 
 SCOPES = ["https://www.googleapis.com/auth/drive"]
-FOLDER_DB = "../files/folder_ids.json"
 
 
 TEMPLATE_ID = "1nRL0RDUWwyGiGEPeAcBk-wW3dlKMr9YGJhIMGwghfSU"
@@ -21,20 +20,39 @@ with open("../files/minutes_id", "r", encoding="utf-8") as f:
 
 
 MONTHS = {
-    1: "Enero",
-    2: "Febrero",
-    3: "Marzo",
-    4: "Abril",
-    5: "Mayo",
-    6: "Junio",
-    7: "Julio",
-    8: "Agosto",
-    9: "Septiembre",
-    10: "Octubre",
-    11: "Noviembre",
-    12: "Diciembre",
+   1: "Septiembre",
+    2: "Octubre",
+    3: "Noviembre",
+    4: "Diciembre",
+    5: "Enero",
+    6: "Febrero",
+    7: "Marzo",
+    8: "Abril",
+    9: "Mayo",
+    10: "Junio",
+    11: "Julio",
+    12: "Agosto",
 }
 
+
+def get_folder_by_name(service, name, parent_id):
+    query = (
+        f"mimeType='application/vnd.google-apps.folder' "
+        f"and name='{name}' "
+        f"and '{parent_id}' in parents "
+        f"and trashed=false"
+    )
+
+    results = service.files().list(
+        q=query,
+        fields="files(id, name)",
+        supportsAllDrives=True,
+        includeItemsFromAllDrives=True
+    ).execute()
+
+    files = results.get("files", [])
+
+    return files[0]["id"] if files else None
 
 # ----------------------------
 # LOAD / SAVE CACHE
@@ -65,25 +83,25 @@ def get_service():
 # CORE LOGIC
 # ----------------------------
 
-def get_or_create_month_folder(service, month_name, cache):
-    if month_name in cache:
-        return cache[month_name]
+def get_or_create_folder(service, name, parent_id):
+    folder_id = get_folder_by_name(service, name, parent_id)
 
-    # Create folder in Drive
-    folder_metadata = {
-        "name": month_name,
+    if folder_id:
+        return folder_id
+
+    metadata = {
+        "name": name,
         "mimeType": "application/vnd.google-apps.folder",
-        "parents": [PARENT_FOLDER_ID],
+        "parents": [parent_id],
     }
 
-    folder = service.files().create(body=folder_metadata, fields="id", supportsAllDrives=True).execute()
-    folder_id = folder["id"]
+    folder = service.files().create(
+        body=metadata,
+        fields="id",
+        supportsAllDrives=True
+    ).execute()
 
-    cache[month_name] = folder_id
-    save_folder_ids(cache)
-
-    return folder_id
-
+    return folder["id"]
 
 def copy_template(service, folder_id):
     body = {
@@ -97,6 +115,9 @@ def copy_template(service, folder_id):
         supportsAllDrives=True
     ).execute()
 
+def academic_month_index(real_month: int) -> int:
+    return ((real_month - 9) % 12) + 1
+
 
 # ----------------------------
 # MAIN
@@ -104,13 +125,13 @@ def copy_template(service, folder_id):
 
 def main():
     service = get_service()
-    cache = load_folder_ids()
 
 
     now = datetime.now()
-    month_name = f"{now.month}. {MONTHS[now.month]}"
+    index = academic_month_index(now.month)
+    folder_name = f"{index}. {MONTHS[index]}"
 
-    folder_id = get_or_create_month_folder(service, month_name, cache)
+    folder_id = get_or_create_folder(service, folder_name, PARENT_FOLDER_ID)
     file = copy_template(service, folder_id)
 
     print("Created file:", file["id"])
