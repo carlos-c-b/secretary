@@ -9,6 +9,7 @@ from pathlib import Path
 
 BASE_DIR = Path(__file__).resolve().parent
 TOKEN_PATH = BASE_DIR / "../token.json"
+SUSPENDED_PATH = BASE_DIR / "../files/suspended"
 
 
 SCOPES = ["https://www.googleapis.com/auth/drive"]
@@ -80,3 +81,22 @@ def save(file_path, data):
             ]
     with open(file_path, "w") as f:
         json.dump(data, f)
+
+# Devuelve True si el archivo contiene "Suspendido" y False en otro caso
+def read_suspended():
+    with open(SUSPENDED_PATH, "r", encoding="utf-8") as f:
+        data = f.read()
+    if data == "Suspendido":
+        return True
+    else:
+        return False
+
+def write_suspended(boolean_val):
+    if boolean_val:
+        data = "Suspendido"
+    else:
+        data = "No suspendido"
+    with open(SUSPENDED_PATH, "w", encoding="utf-8") as f:
+        f.write(data)
+
+
