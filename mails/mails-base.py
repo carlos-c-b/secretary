@@ -8,14 +8,14 @@ body = "Hello, this is a simple automated email from Python."
 
 msg = MIMEText(body)
 msg["Subject"] = subject
-msg["From"] = "carlos.beltran@bestvalencia.org"
+msg["From"] = "secretary@bestvalencia.org"
 msg["To"] = "carloscbc2004@gmail.com"
 
 # SMTP server (example: Gmail)
 smtp_server = "smtp.gmail.com"
 smtp_port = 465
 
-username = "carlos.beltran@bestvalencia.org"
+username = "secretary@bestvalencia.org"
 password = os.getnev("EMAIL_PASSWORD") # use app password, not your real password
 
 # Send email
