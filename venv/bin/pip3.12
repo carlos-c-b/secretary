@@ -1,4 +1,4 @@
-#!/home/carlos/secretary/mails/venv/bin/python3
+#!/home/carlos/secretary/venv/bin/python
 # -*- coding: utf-8 -*-
 import re
 import sys
