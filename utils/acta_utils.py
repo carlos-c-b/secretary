@@ -3,16 +3,22 @@ import os
 from datetime import datetime
 from googleapiclient.discovery import build
 from google.oauth2.credentials import Credentials
+from utils import extract_file_id
 
 # ----------------------------
 # CONFIG
 # ----------------------------
 
 SCOPES = ["https://www.googleapis.com/auth/drive"]
-FOLDER_DB = "folder_ids.json"
+FOLDER_DB = "../files/folder_ids.json"
+
 
 TEMPLATE_ID = "1nRL0RDUWwyGiGEPeAcBk-wW3dlKMr9YGJhIMGwghfSU"
 PARENT_FOLDER_ID = "1MfMJpwuYrUekiCb1_fEl0wVT3oBlbV3r"
+
+with open("../files/minutes_id", "r", encoding="utf-8") as f:
+    PARENT_FOLDER_ID = extract_file_id(f.read())
+
 
 MONTHS = {
     1: "Enero",

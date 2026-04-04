@@ -3,6 +3,17 @@ from prompt_toolkit import prompt
 from prompt_toolkit.completion import WordCompleter
 from prompt_toolkit.history import FileHistory
 from prompt_toolkit.shortcuts import CompleteStyle
+from pathlib import Path
+
+
+BASE_DIR = Path(__file__).resolve().parent
+HISTORY_PATH = BASE_DIR / "../files/log"
+MINUTES_PATH = BASE_DIR / "../files/minutes_id"
+commands = ["help", "exit", "actas"]
+
+completer = WordCompleter(commands, ignore_case=True)
+
+history = FileHistory(str(HISTORY_PATH))
 
 def actas():
     print("Gestión de actas")
@@ -28,7 +39,7 @@ def actas():
             break
 
 def ver_link():
-    with open("../files/minutes_id", "r", encoding="utf-8") as f:
+    with open(str(MINUTES_PATH), "r", encoding="utf-8") as f:
         content = f.read()
     print(content)
 
@@ -39,7 +50,7 @@ def cambiar_link():
     try:
         file_id, exists = check_drive_link(link)
         if exists:
-            with open("../files/minutes_id", "w", encoding="utf-8") as f:
+            with open(MINUTES_PATH, "w", encoding="utf-8") as f:
                 f.write(link)
             print("Link de la carpeta de actas actualizado con éxito")
         else:
@@ -50,11 +61,6 @@ def cambiar_link():
 
 
 
-commands = ["help", "exit", "actas"]
-
-completer = WordCompleter(commands, ignore_case=True)
-
-history = FileHistory("../files/log")
 
 
 def main():
