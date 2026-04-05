@@ -19,7 +19,7 @@ week_ago = today - timedelta(days=7)
 
 today_str = today.strftime("%d/%m/%Y")
 yesterday_str = yesterday.strftime("%d/%m")
-week_ago_str = week_ago.strftime("%d/%m/%Y")
+week_ago_str = week_ago.strftime("%d/%m")
 
 days_es = [
     "lunes", "martes", "miércoles", "jueves",
@@ -79,7 +79,7 @@ subject = f"[Secretaría] [Agenda] Reunión semanal {next_meeting_str}"
 msg = MIMEText(html, "html")
 msg["Subject"] = subject
 msg["From"] = "secretary@bestvalencia.org"
-msg["To"] = "carloscbc2004@gmail.com"
+msg["To"] = "smashing-bros@bestvalencia.org"
 
 # SMTP server (example: Gmail)
 smtp_server = "smtp.gmail.com"

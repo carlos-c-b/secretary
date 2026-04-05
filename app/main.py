@@ -33,8 +33,8 @@ history = FileHistory(str(HISTORY_PATH))
 
 
 def actas():
-    print("Gestión de actas")
-    print("\nSelecciona una órden:")
+    print("\nGestión de actas")
+    print("Selecciona una órden:")
     print("\t1) Cambiar carpeta donde se guardan las actas")
     print("\t2) Ver dirección actual de la carpeta de actas")
     print("\t3) Volver")
@@ -56,8 +56,7 @@ def actas():
             break
 
 def ver_link():
-    with open(str(MINUTES_PATH), "r", encoding="utf-8") as f:
-        content = f.read()
+    content = load_from_file(MINUTES_PATH)
     print(content)
 
 
@@ -79,12 +78,14 @@ def cambiar_link():
 
 
 def reus():
-    print("Gestionar convocatorias de reunión")
+    print("\nGestionar reuniones")
     print("Selecciona una órden: ")
     print("\t1) Cambiar día de próxima reu")
     print("\t2) Ver día de próxima reu")
     print("\t3) Suspender convocatorias")
-    print("\t4) Volver")
+    print("\t4) Ver puntos de reunión")
+    print("\t5) Modificar puntos de reunión")
+    print("\t6) Volver")
 
     while True:
         try:
@@ -100,12 +101,110 @@ def reus():
                 gestionar_suspension()
                 break
             elif cmd == "4":
+                ver_puntos()
+                break
+            elif cmd == "5":
+                modificar_puntos()
+                break
+            elif cmd == "6":
                 break
             else:
                 print("Selecciona una órden válida")
         except KeyboardInterrupt:
             print()
             break
+
+def ver_puntos():
+    print("\nVer puntos")
+    print("Selecciona una órden: ")
+    print("1) Ver puntos permanentes")
+    print("2) Ver puntos temporales (si hay)")
+
+    ans = input("\nSelección: ")
+
+    if ans == "1":
+        day = load_from_json(DAY_POINTS_PATH)
+        night = load_from_json(NIGHT_POINTS_PATH)
+        print("PUNTOS DEL DÍA")
+        for item in day:
+            print('\t'+item)
+
+        print("PUNTOS DE NOCHE")
+        for item in night:
+            print('\t'+item)
+    elif ans == "2":
+        if does_file_exist(DAY_POINTS_TEMP_PATH):
+            day_temp = load_from_json(DAY_POINTS_TEMP_PATH)
+            print("PUNTOS DEL DÍA (Temporales)")
+            for item in day_temp:
+                print('\t'+item)
+        else:
+            day = load_from_json(DAY_POINTS_PATH)
+            print("PUNTOS DEL DÍA (Permanentes)")
+            for item in day:
+                print('\t'+item)
+        if does_file_exist(NIGHT_POINTS_TEMP_PATH):
+            night_temp = load_from_json(NIGHT_POINTS_TEMP_PATH)
+            print("PUNTOS DE NOCHE (Temporales)")
+            for item in night_temp:
+                print('\t'+item)
+        else:
+            night = load_from_json(NIGHT_POINTS_PATH)
+            print("PUNTOS DE NOCHE (Permanentes)")
+            for item in night:
+                print('\t'+item)
+
+
+def modificar_puntos():
+    print("Modificar puntos")
+    print("Selecciona una orden:")
+    print("1) Modificar puntos del día")
+    print("2) Modificar puntos de noche")
+    print()
+    cmd = input("Selección: ").strip()
+
+    if cmd == "1":
+        print("Introduce los puntos del día (o nada para finalizar): ")
+        items = []
+        while True:
+            item = input("Añadir punto: ")
+            if item == "":
+                break
+            items.append(item)
+        save_into_json(items, DAY_POINTS_PATH)
+        ans = input("¿Deseas actualizarlos de manera temporal o permanente? Si escribes 'temporal', sólo se modificarán para la próxima reu. Si eliges 'permanente', se convertirán en los puntos por defecto (temporal/permanente): ")
+        if ans == "temporal":
+            if not does_file_exist(DAY_POINTS_TEMP_PATH):
+                save_into_json(items, DAY_POINTS_TEMP_PATH)
+            print("Puntos del día actualizados para la próxima reu")
+        elif ans == "permanente":
+            save_into_json(items, DAY_POINTS_PATH)
+            print("Puntos del día actualizados")
+        else:
+            print("Comando inválido. Operación abortada.")
+    elif cmd == "2":
+        print("Introduce los puntos de noche (o nada para finalizar): ")
+        items = []
+        while True:
+            item = input("Añadir punto: ")
+            if item == "":
+                break
+            items.append(item)
+        ans = input("¿Deseas actualizarlos de manera temporal o permanente? Si escribes 'temporal', sólo se modificarán para la próxima reu. Si eliges 'permanente', se convertirán en los puntos por defecto (temporal/permanente): ")
+        if ans == "temporal":
+            if not does_file_exist(NIGHT_POINTS_TEMP_PATH):
+                create_file(NIGHT_POINTS_TEMP_PATH)
+            save_into_json(items, NIGHT_POINTS_TEMP_PATH)
+            print("Puntos de noche actualizados para la próxima reu")
+        elif ans == "permanente":
+            save_into_json(items, NIGHT_POINTS_PATH)
+            print("Puntos de noche actualizados")
+        else:
+            print("Comando inválido. Operación abortada.")
+    else:
+        print("Selección inválida")
+
+
 
 
 def is_valid_time(s: str) -> bool:
@@ -206,7 +305,6 @@ def main():
                 actas()
             elif cmd == "reus":
                 reus()
-
             else:
                 print(f"Comando desconocido: {cmd}")
 

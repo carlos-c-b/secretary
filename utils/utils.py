@@ -17,7 +17,10 @@ SEND_MAIL_PATH = BASE_DIR / "mails.mail-convocatora-reu"
 CREATE_MINUTES_PATH = BASE_DIR / "utils.acta_utils"
 CRON_PATH = BASE_DIR / "utils.cron"
 MEETING_DATES_PATH = BASE_DIR / "../files/meeting_dates"
-
+DAY_POINTS_PATH = BASE_DIR / "../files/day_points"
+NIGHT_POINTS_PATH = BASE_DIR / "../files/night_points"
+DAY_POINTS_TEMP_PATH = BASE_DIR / "../files/day_points_temp"
+NIGHT_POINTS_TEMP_PATH = BASE_DIR / "../files/night_points_temp"
 
 MAIL_COMMAND = f"{PYTHON_PATH} -m {SEND_MAIL_PATH}"
 MINUTES_COMMAND = f"{PYTHON_PATH} -m {CREATE_MINUTES_PATH}"
@@ -47,6 +50,25 @@ def extract_file_id(url: str) -> str:
         raise ValueError("Link inválido")
     return match.group(1)
 
+
+def create_file(path):
+    Path(path).touch()
+
+def does_file_exist(path):
+    p = Path(path)
+    return p.exists()
+
+def delete_file(path):
+    Path(path).unlink()
+
+
+def save_into_json(data, file_path):
+    with open(file_path, "w", encoding="utf-8") as f:
+        json.dump(data, f, indent=2)
+
+def load_from_json(file_path):
+    with open(file_path, "r", encoding="utf-8") as f:
+        return json.load(f)
 
 def folder_exists(file_id: str, service) -> bool:
     try:
