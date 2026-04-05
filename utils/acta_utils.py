@@ -145,9 +145,8 @@ def create_new_minutes():
     save_file_id(file)  # Guardamos el id del acta recién creada
     return file
 
-def main():
+def main_method():
     last_minutes_id = get_last_minutes_id()
     new_minutes_id = create_new_minutes()
 
-main()
 
