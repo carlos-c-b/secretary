@@ -13,15 +13,15 @@ BASE_DIR = Path(__file__).resolve().parent
 TOKEN_PATH = BASE_DIR / "../token.json"
 PYTHON_PATH = BASE_DIR / "../venv/bin/python"
 SUSPENDED_PATH = BASE_DIR / "../files/suspended"
-SEND_MAIL_PATH = BASE_DIR / "../mails/mail-convocatoria-reu.py"
-CREATE_MINUTES_PATH = BASE_DIR / "../utils/acta_utils.py"
-CRON_PATH = BASE_DIR / "../utils/cron.py"
+SEND_MAIL_PATH = BASE_DIR / "mails.mail-convocatora-reu"
+CREATE_MINUTES_PATH = BASE_DIR / "utils.acta_utils"
+CRON_PATH = BASE_DIR / "utils.cron"
 MEETING_DATES_PATH = BASE_DIR / "../files/meeting_dates"
 
 
-MAIL_COMMAND = f"{PYTHON_PATH} {SEND_MAIL_PATH}"
-MINUTES_COMMAND = f"{PYTHON_PATH} {CREATE_MINUTES_PATH}"
-CRON_COMMAND = f"{PYTHON_PATH} {CRON_PATH}"
+MAIL_COMMAND = f"{PYTHON_PATH} -m {SEND_MAIL_PATH}"
+MINUTES_COMMAND = f"{PYTHON_PATH} -m {CREATE_MINUTES_PATH}"
+CRON_COMMAND = f"{PYTHON_PATH} -m {CRON_PATH}"
 
 
 
@@ -236,12 +236,19 @@ def schedule_call(date_obj, hour, minute):
         hour_acta = hour
         minute_acta = minute-1
     schedule_job(date_obj, hour_acta, minute_acta, MINUTES_COMMAND)
-    print(f"Se creará el acta el {date_obj.strftime('%d/%m/%Y')} a las {format_time(str(hour_acta))}:{format_time(str(minute_acta))}")
-    # Programamos el at para mandar este correo
-    schedule_job(date_obj, hour, minute, MAIL_COMMAND)
-    print(f"Se mandará el correo el {date_obj.strftime('%d/%m/%Y')} a las {format_time(str(hour))}:{format_time(str(minute))}")
 
     # Restauramos los cron jobs para el acta y la convocatoria normal a partir del siguiente domingo a las 19
     date_obj += timedelta(days=7)
     schedule_job(date_obj, 18, 0, CRON_COMMAND)
     print("A partir de la siguiente semana, las convocatorias se mandarán el domingo a las 19:00")
+
+    print(f"Se creará el acta el {date_obj.strftime('%d/%m/%Y')} a las {format_time(str(hour_acta))}:{format_time(str(minute_acta))}")
+    # Programamos el at para mandar este correo
+    schedule_job(date_obj, hour, minute, MAIL_COMMAND)
+    print(f"Se mandará el correo el {date_obj.strftime('%d/%m/%Y')} a las {format_time(str(hour))}:{format_time(str(minute))}")
+
+
+# Función de debuggear para enviar correo instantaneamnete y crear el acta
+def send_instantly():
+    borrar_scheduled_jobs()
+    

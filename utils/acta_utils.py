@@ -5,7 +5,7 @@ from googleapiclient.discovery import build
 from google.oauth2.credentials import Credentials
 from utils.utils import extract_file_id
 from pathlib import Path
-from .utils import TOKEN_PATH
+from .utils import TOKEN_PATH, get_next_meeting_date
 
 # ----------------------------
 # CONFIG
@@ -110,7 +110,7 @@ def get_or_create_folder(service, name, parent_id):
 
 def copy_template(service, folder_id):
     body = {
-        "name": f"Acta de reunión {datetime.now().strftime('%d/%m/%Y')}",
+        "name": f"Acta de reunión {get_next_meeting_date().strftime('%d/%m/%Y')}",
         "parents": [folder_id],
     }
 
@@ -126,7 +126,7 @@ def academic_month_index(real_month: int) -> int:
 
 def save_file_id(file_id):
     with open(LAST_MINUTES_ID_PATH, "w", encoding="utf-8") as f:
-        f.write(str(file_id))
+        f.write(str(file_id["id"]))
 
 def get_last_minutes_id():
     with open(LAST_MINUTES_ID_PATH, "r", encoding="utf-8") as f:
@@ -143,10 +143,7 @@ def create_new_minutes():
     folder_id = get_or_create_folder(service, folder_name, PARENT_FOLDER_ID)
     file = copy_template(service, folder_id)
     save_file_id(file)  # Guardamos el id del acta recién creada
-    return file
+    return file["id"]
 
-def main_method():
-    last_minutes_id = get_last_minutes_id()
-    new_minutes_id = create_new_minutes()
 
 

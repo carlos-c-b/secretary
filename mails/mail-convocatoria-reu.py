@@ -4,7 +4,9 @@ from datetime import datetime, timedelta
 import os
 from jinja2 import Template
 from pathlib import Path
-from utils.acta_utils import last_minutes_id, new_minutes_id
+from utils.acta_utils import get_last_minutes_id, create_new_minutes
+from utils.utils import get_last_meeting_date, get_next_meeting_date, set_last_meeting_date
+from datetime import timedelta
 
 BASE_DIR = Path(__file__).resolve().parent
 MAIL_PATH = BASE_DIR / "../mails/convocatoria-reu.html"
@@ -44,27 +46,35 @@ def format_spanish_date(date_str):
 
     return f"{day_name} {day_num} de {month_name}"
 
-today_formatted = format_spanish_date(today_str)
 
 
 with open(MAIL_PATH, "r", encoding="utf-8") as f:
     template = Template(f.read())
 
+last_minutes_id = get_last_minutes_id()
+new_minutes_id = create_new_minutes()
+
 last_minutes_link = f"https://docs.google.com/document/d/{last_minutes_id}/edit"
 new_minutes_link = f"https://docs.google.com/document/d/{new_minutes_id}/edit"
+last_meeting_str = get_last_meeting_date().strftime("%d/%m/%Y")
+next_meeting_str = get_next_meeting_date().strftime("%d/%m/%Y")
+next_meeting_formatted = format_spanish_date(next_meeting_str)
+day_before = get_next_meeting_date() - timedelta(days=1)
+day_before_str = day_before.strftime("%d/%m/%Y")
 
 html = template.render(
-    today_str = today_str,
-    yesterday_str=yesterday_str,
-    week_ago_str=week_ago_str,
-    today_formatted=today_formatted
-    last_minutes_link=last_minutes_link
+    today_str = next_meeting_str,
+    yesterday_str=day_before_str,
+    week_ago_str=last_meeting_str,
+    today_formatted=next_meeting_formatted,
+    last_minutes_link=last_minutes_link,
     new_minutes_link=new_minutes_link
 )
 
+set_last_meeting_date(get_next_meeting_date())
 
 # Email content
-subject = "Test Email"
+subject = f"[Secretaría] [Agenda] Reunión semanal {next_meeting_str}"
 
 msg = MIMEText(html, "html")
 msg["Subject"] = subject
