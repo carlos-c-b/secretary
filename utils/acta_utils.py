@@ -3,7 +3,8 @@ import os
 from datetime import datetime
 from googleapiclient.discovery import build
 from google.oauth2.credentials import Credentials
-from utils import extract_file_id
+from utils.utils import extract_file_id
+from pathlib import Path
 
 # ----------------------------
 # CONFIG
@@ -13,9 +14,12 @@ SCOPES = ["https://www.googleapis.com/auth/drive"]
 
 
 TEMPLATE_ID = "1nRL0RDUWwyGiGEPeAcBk-wW3dlKMr9YGJhIMGwghfSU"
-PARENT_FOLDER_ID = "1MfMJpwuYrUekiCb1_fEl0wVT3oBlbV3r"
 
-with open("../files/minutes_id", "r", encoding="utf-8") as f:
+BASE_DIR = Path(__file__).resolve().parent
+MINUTES_PATH = BASE_DIR / "../files/minutes_folder_id"
+LAST_MINUTES_ID = BASE_DIR / "../files/last_minutes_id"
+
+with open(MINUTES_PATH, "r", encoding="utf-8") as f:
     PARENT_FOLDER_ID = extract_file_id(f.read())
 
 
@@ -119,11 +123,15 @@ def academic_month_index(real_month: int) -> int:
     return ((real_month - 9) % 12) + 1
 
 
-# ----------------------------
-# MAIN
-# ----------------------------
+def save_file_id(file_id):
+    with open(LAST_MINUTES_PATH, "w", encoding="utf-8") as f:
+        f.write(file_id)
 
-def main():
+def get_last_minutes_id():
+    with open(LAST_MINUTES_PATH, "r", encoding="utf-8") as f:
+        return f.read()
+
+def create_new_minutes():
     service = get_service()
 
 
@@ -133,11 +141,9 @@ def main():
 
     folder_id = get_or_create_folder(service, folder_name, PARENT_FOLDER_ID)
     file = copy_template(service, folder_id)
+    save_file_id(file)  # Guardamos el id del acta recién creada
+    return file
 
-    print("Created file:", file["id"])
-    print("In folder:", folder_id)
-
-
-if __name__ == "__main__":
-    main()
-
+def main():
+    last_minutes_id = get_last_minutes_id()
+    new_minutes_id = create_new_minutes()

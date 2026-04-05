@@ -1,3 +1,9 @@
 Para que funcione el correo, es necesario guardar la contraseña de aplicación en la variable de entorno EMAIL_PASSWORD, i.e. export EMAIL_PASSWORD=... en .bashrc o configurarla como variable de entorno en windows.
 
 Es necesario un archivo credentials.json con las credenciales de un proyecto de google cloud. Preguntar al último secre. Si no, ir a console.google.com, ir al proyecto AutoSecre -> APIs y servicios -> Credenciales -> Crear credenciales ID de cliente de OAuth -> Tipo de App: App de escritorio, Nombre el que sea -> Descargar archivo, renombrarlo como credentials.json y ponerlo en la carpeta raíz de este proyecto (no subir las credenciales a github, ponerlo en el .gitignore)
+
+Instalar at y ejecutar sudo systemctl enable --now atd
+
+Comprobar utils.utils en schedule_job que el formato de la fecha es el aceptado por cron en el sistema
+
+Definir alias py=venv/bin/python. Si no, algunos módulos no funcionarán

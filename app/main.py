@@ -1,21 +1,19 @@
-from utils.utils import check_drive_link, load, save, get_date_from_weekday, read_suspended, write_suspended, is_valid_date_format
+# from utils.utils import check_drive_link, load, save, get_date_from_weekday, read_suspended, write_suspended, is_valid_date_format, SEND_MAIL_PATH, PYTHON_PATH, MAIL_COMMAND, MINUTES_COMMAND, schedule_call, MEETING_DATES_PATH 
+from utils.utils import *
 import json
 import ast
 import os
-from utils.utils import get_date_from_weekday
 from datetime import date, timedelta, datetime
 from prompt_toolkit import prompt
 from prompt_toolkit.completion import WordCompleter
 from prompt_toolkit.history import FileHistory
 from prompt_toolkit.shortcuts import CompleteStyle
 from pathlib import Path
-
+from utils.acta_utils import MINUTES_PATH
 
 BASE_DIR = Path(__file__).resolve().parent
 
 HISTORY_PATH = BASE_DIR / "../files/log"
-MINUTES_PATH = BASE_DIR / "../files/minutes_id"
-MEETING_DATES_PATH = BASE_DIR / "../files/meeting_dates"
 
 WEEK_MAP = {
     "L": 0,
@@ -99,7 +97,7 @@ def reus():
                 ver_dia_reu()
                 break
             elif cmd == "3":
-                suspender_convocatorias()
+                gestionar_suspension()
                 break
             elif cmd == "4":
                 break
@@ -110,72 +108,84 @@ def reus():
             break
 
 
+def is_valid_time(s: str) -> bool:
+    return bool(re.match(r'^([01]\d|2[0-3]):[0-5]\d$', s))
+
+def get_hour(s: str) -> int:
+    return int(s.split(":")[0])
+
+def get_minute(s: str) -> int:
+    return int(s.split(":")[1])
+
+def format_time(s):
+    if(len(s) == 1)
+        return '0' + s
+    else:
+        return s
 
 def cambiar_dia_reu():
-    answer = input("Introduce fecha de la próxima reu (DD/MM/YYYY): ")
+    date_answer = input("Introduce fecha de la próxima reu (DD/MM/YYYY): ")
+    hour_answer = input("Introduce la hora (HH:MM): ")
 
-    if  is_valid_date_format(answer):
+    if  is_valid_date_format(answer) and is_valid_time(hour_answer):
         newdate = datetime.strptime(answer, "%d/%m/%Y").date()
+        hour = get_hour(hour_answer)
+        minute = get_minute(minute_answer)
 
-        data = load(MEETING_DATES_PATH)
+        set_last_meeting_date(get_next_meeting_date())
+        set_next_meeting_date(newdate)
+        set_next_meeting_hour(hour)
+        set_next_meeting_minute(minute)
 
-        # update second position
-        data[1] = newdate.isoformat()
+        dia_reu = get_next_meeting_date()
+        dia_convocatoria = dia_reu - timedelta(days=5)
 
-        # write back
-        save(MEETING_DATES_PATH, data)
+        today = date.today()
+        sunday = today + timedelta(days=6-today.weekday())
 
-        dia_convocatoria = date.fromisoformat(data[1]) - timedelta(days=5)
-        print(f"La próxima reunión será el {newdate.strftime('%d/%m/%Y')}. La convocatoria está programada para el {dia_convocatoria} a las 19:00")
+
+        # El siguiente método:
+        # 1. Elimina los cron jobs actuales para mandar correo y crear acta el domingo
+        # 2. Crea tareas at para crear el acta y mandar correo el día de la convocatoria
+        # 3. Añade los cron jobs para restaurar las reus normales de los viernes (crear acta y mandar correo los domingos a las 19h a partir del siguiente domingo)
+        schedule_call(dia_convocatoria, hour, minute)
+
+        print_next_meeting()
     else:
         print("Valor introducido no válido")
 
 def ver_dia_reu():
-    data = load(MEETING_DATES_PATH)
+    print_next_meeting()
 
-    second_date = date.fromisoformat(data[1])
-    dia_convocatoria = date.fromisoformat(data[1]) - timedelta(days=5)
-    print(f"La próxima reunión será el {second_date.strftime('%d/%m/%Y')}. La convocatoria está programada para el {dia_convocatoria} a las 19:00")
 
+def gestionar_suspension():
+    suspended = read_suspended()
+    if suspended:
+        val = "Actualmente las convocatorias están suspendidas. ¿Desea activarlas? (si/no): "
+    else:
+        val = "Actualmente las convocatorias no están suspendidas. ¿Desea suspenderlas? (si/no)"
+    print("Suspender convocatorias")
+    answer = input(val)
+    if val:
+        if answer == "si":
+            activar_convocatorias()
+    else:
+        if answer == "si":
+            suspender_convocatorias()
+
+def activar_convocatorias():
+        write_suspended(False)
+        print("Se han reanudado las convocatorias de reunión")
+        print_next_meeting()
 
 def suspender_convocatorias():
-    suspended = read_suspended()
-    print("Suspender convocatorias: introduce el número de semanas para las que se suspenden las reuniones, o escribe S para suspenderlas indefinidamente")
-    while True:
-        resp = input("Introduce respuesta: ")
-        if resp.isdigit():
-            # Suspender convocatorias X semanas
-            data = load(MEETING_DATES_PATH)
+        write_suspended(True)
+        print("Se han suspendido las convocatorias de reunión")
 
-            second_date = date.fromisoformat(data[1])
-            lunes1 = second_date - timedelta(days=second_date.weekday())
-
-            tmp = second_date + timedelta(weeks=int(resp))
-            lunes2 = tmp - timedelta(days=tmp.weekday())
-
-            proxima_reu = lunes2 + timedelta(days=second_date.weekday())
-
-            proxima_conv = proxima_reu - timedelta(days=5)
-
-            data[1] = date.isoformat(proxima_conv)
-
-            save(MEETING_DATES_PATH, data)
-            print(f"La próxima reunión será el {proxima_reu.strftime('%d/%m/%Y')}. Se ha programado la convocatoria para el {proxima_conv.strftime('%d/%m/%Y')} a lass 19:00")
-            break
-        elif resp == 'S':
-            if suspended:
-                data = load(MEETING_DATES_PATH)
-                proxima_reu = date.fromisoformat(data[1])
-                proxima_conv = proxima_reu - timedelta(days=5)
-                write_suspended(False)
-                print("Se han reanudado las convocatorias de reunión")
-                print(f"La próxima reunión será el {proxima_reu.strftime('%d/%m/%Y')}. Se ha programado la convocatoria para el {proxima_conv.strftime('%d/%m/%Y')} a lass 19:00")
-            else:
-                write_suspended(True)
-                print("Se han suspendido las convocatorias indefinidamente. Vuelve a ejecutar el comando para activarlas.")
-            break
-        else:
-            print("Introduce una respuesta válida")
+def print_next_meeting():
+        proxima_reu = get_next_meeting_date()
+        proxima_conv = proxima_reu - timedelta(days=5)
+        print(f"La próxima reunión será el {proxima_reu.strftime('%d/%m/%Y')}. Se ha programado la convocatoria para el {proxima_conv.strftime('%d/%m/%Y')} a las {format_time(get_next_meeting_hour)}:{format_time(get_next_meeting_minute)}")
 
 def main():
     while True:

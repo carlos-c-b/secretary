@@ -3,8 +3,11 @@ from email.mime.text import MIMEText
 from datetime import datetime, timedelta
 import os
 from jinja2 import Template
+from pathlib import Path
+from utils.acta_utils import last_minutes_id, new_minutes_id
 
-
+BASE_DIR = Path(__file__).resolve().parent
+MAIL_PATH = BASE_DIR / "../mails/convocatoria-reu.html"
 
 # Dates
 today = datetime.now()
@@ -44,14 +47,19 @@ def format_spanish_date(date_str):
 today_formatted = format_spanish_date(today_str)
 
 
-with open("convocatoria-reu.html", "r", encoding="utf-8") as f:
+with open(MAIL_PATH, "r", encoding="utf-8") as f:
     template = Template(f.read())
+
+last_minutes_link = f"https://docs.google.com/document/d/{last_minutes_id}/edit"
+new_minutes_link = f"https://docs.google.com/document/d/{new_minutes_id}/edit"
 
 html = template.render(
     today_str = today_str,
     yesterday_str=yesterday_str,
     week_ago_str=week_ago_str,
     today_formatted=today_formatted
+    last_minutes_link=last_minutes_link
+    new_minutes_link=new_minutes_link
 )
 
 
